@@ -1,4 +1,4 @@
-var gulp = require('gulp'); 
+/*var gulp = require('gulp'); 
 var sass = require('gulp-sass'); // Sass to CSS
 var browserSync = require('browser-sync').create(); // Syncs up with browser
 var useref = require('gulp-useref'); // Allows to reference multiple directories
@@ -8,19 +8,41 @@ var pump = require('pump');  // Used similar to pipe, but better error handling
 var cssnano = require('gulp-cssnano'); // CSS Mininfication
 var imagemin = require('gulp-imagemin'); // Optimize images
 var cache = require('gulp-cache'); // caching proxy task
-var runSequence = require('run-sequence'); // allows us to run gulp tasks in a specifc order
+var runSequence = require('run-sequence'); // allows us to run gulp tasks in a specifc ordernpm 
+const babel = require('gulp-babel'); */
+
+// package vars
+const pkg = require("./package.json");
+
+// gulp
+const gulp = require("gulp");
+
+// load all plugins in "devDependencies" into the variable $
+const $ = require("gulp-load-plugins")({
+    pattern: ["*"],
+    scope: ["devDependencies"]
+});
+
 
 gulp.task('sass', function() {
     return gulp.src('app/scss/**/*.scss')
-        .pipe(sass())  //using gulp-sass
+        .pipe($.sass())  //using gulp-sass
         .pipe(gulp.dest('app/css'))
-        .pipe(browserSync.reload({
+        .pipe($.browserSync.reload({
             stream: true
         }))
 });
 
+gulp.task('babel', () =>
+    gulp.src('src/app.js')
+        .pipe($.babel({
+            presets: ['app']
+        }))
+        .pipe(gulp.dest('dist'))
+);
+
 gulp.task('browserSync', function() {
-    browserSync.init({
+    $.browserSync.init({
         server: {
             baseDir: 'app'
         }
@@ -33,7 +55,7 @@ gulp.task('compress', function (cb) {
     // pump is better for error handling than just pipe alone
     pump([
           gulp.src('app/js/**/*.js'),
-          uglify(),
+          $.uglify(),
           gulp.dest('dist')
       ],
       cb
@@ -42,17 +64,17 @@ gulp.task('compress', function (cb) {
 
 gulp.task('useref', function() {
     return gulp.src('app/*.html')
-        .pipe(useref())
+        .pipe($.useref())
         //Minifies only if its a JS file
-        .pipe(gulpIf('*.js', uglify()))
-        .pipe(gulpIf('*.css', cssnano()))
+        .pipe($.gulpIf('*.js', $.uglify()))
+        .pipe($.gulpIf('*.css', $.cssnano()))
         .pipe(gulp.dest('dist'))
 })
 
 gulp.task('images', function() {
     return gulp.src('app/images/**/*.+(png|jpg|gif|svg)')
         // Caching images that ran through imagemin
-        .pipe(cache(imagemin({
+        .pipe($.cache($.imagemin({
             interlaced: true
         })))
         .pipe(gulp.dest('dist/images'))
@@ -69,14 +91,14 @@ gulp.task('clean:dist', function () {
 })
 
 gulp.task('build', function(callback) {
-    runSequence('clean:dist', 
+    $.runSequence('clean:dist', 
         ['sass', 'useref', 'images', 'fonts'],
         callback
     )
 })
 
 gulp.task('default', function(callback) {
-    runSequence(['sass', 'browserSync', 'watch'],
+    $.runSequence(['sass', 'babel', 'browserSync', 'watch'],
         callback
     )
 })
@@ -84,7 +106,7 @@ gulp.task('default', function(callback) {
 gulp.task('watch', ['browserSync', 'sass'], function() {
     gulp.watch('app/scss/**/*.scss', ['sass']);
     // Other watchers
-    gulp.watch('app/*.html', browserSync.reload);
-    gulp.watch('app/js/**/*.js', browserSync.reload);
+    gulp.watch('app/*.html', $.browserSync.reload);
+    gulp.watch('app/js/**/*.js', $.browserSync.reload);
 })
 
