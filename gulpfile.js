@@ -34,11 +34,11 @@ gulp.task('sass', function() {
 });
 
 gulp.task('babel', () =>
-    gulp.src('src/app.js')
+    gulp.src('app/js/**/*.js')
         .pipe($.babel({
-            presets: ['app']
+            presets: ['env']
         }))
-        .pipe(gulp.dest('dist'))
+        .pipe(gulp.dest('dist/js'))
 );
 
 gulp.task('browserSync', function() {
